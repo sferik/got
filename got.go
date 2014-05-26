@@ -40,7 +40,8 @@ func makeRulerCommand() command {
 	spacesToIndent := fs.Int("indent", 0, "the number of spaces to print before the ruler")
 	fn := func(args []string) error {
 		fs.Parse(args)
-		return ruler(*spacesToIndent)
+		_, err := fmt.Println(ruler(*spacesToIndent))
+		return err
 	}
 	return command{
 		fs: fs,
@@ -48,7 +49,7 @@ func makeRulerCommand() command {
 	}
 }
 
-func ruler(spacesToIndent int) error {
+func ruler(spacesToIndent int) string {
 	var ruler string
 	for i := 0; i < spacesToIndent; i++ {
 		ruler += " "
@@ -56,8 +57,7 @@ func ruler(spacesToIndent int) error {
 	for len(ruler) < 140 {
 		ruler += "----|"
 	}
-	_, err := fmt.Println(ruler)
-	return err
+	return ruler
 }
 
 func printError(format string, args ...interface{}) {
