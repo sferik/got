@@ -11,7 +11,7 @@ func TestRuler(t *testing.T) {
 	old := os.Stdout // keep backup of the real stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
-	ruler()
+	ruler(0)
 	outC := make(chan string)
 	// copy the output in a separate goroutine so printing can't block indefinitely
 	go func() {
