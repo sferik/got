@@ -4,20 +4,41 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
-func main() {
-	flag.Parse()
+var programName string
 
+func init() {
+	programName = filepath.Base(os.Args[0])
+}
+
+func main() {
 	commands := map[string]command{
 		"ruler": makeRulerCommand(),
 	}
+
+	flag.Usage = func() {
+		fmt.Printf("%s is a Twitter command-line interface.\n\n", programName)
+		var maxCommandLen int
+		for name := range commands {
+			if len := len(name); len > maxCommandLen {
+				maxCommandLen = len
+			}
+		}
+		for name, subcommand := range commands {
+			formatString := fmt.Sprintf("%%%ds: %%s\n", maxCommandLen)
+			fmt.Printf(formatString, name, subcommand.desc)
+		}
+	}
+
+	flag.Parse()
 
 	args := flag.Args()
 
 	if len(args) <= 0 {
 		flag.Usage()
-		os.Exit(1)
+		os.Exit(2)
 	}
 	cmd, ok := commands[args[0]]
 	if !ok {
@@ -31,8 +52,9 @@ func main() {
 }
 
 type command struct {
-	fs *flag.FlagSet
-	fn func([]string) error
+	fs   *flag.FlagSet
+	desc string
+	fn   func([]string) error
 }
 
 func makeRulerCommand() command {
@@ -44,8 +66,9 @@ func makeRulerCommand() command {
 		return err
 	}
 	return command{
-		fs: fs,
-		fn: fn,
+		fs:   fs,
+		desc: "prints a 140-character ruler",
+		fn:   fn,
 	}
 }
 
@@ -65,5 +88,5 @@ func ruler(spacesToIndent int) string {
 }
 
 func printError(format string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, os.Args[0]+": "+format, args...)
+	fmt.Fprintf(os.Stderr, programName+": "+format, args...)
 }
