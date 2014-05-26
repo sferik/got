@@ -54,8 +54,12 @@ func ruler(spacesToIndent int) string {
 	for i := 0; i < spacesToIndent; i++ {
 		ruler += " "
 	}
-	for len(ruler) < 140 {
-		ruler += "----|"
+	for i := 1; i <= 140; i++ {
+		if i%5 == 0 {
+			ruler += "|"
+		} else {
+			ruler += "-"
+		}
 	}
 	return ruler
 }
