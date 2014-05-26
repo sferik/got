@@ -6,7 +6,17 @@ import (
 	"os"
 )
 
+var homedir string
+
+func init() {
+	homedir = os.Getenv("HOME")
+}
+
 func main() {
+	var (
+	// color   = flag.String("color", "auto", "control how color is used in output")
+	// profile = flag.String("profile", filepath.Join(homedir, ".trc"), "path to RC file")
+	)
 	flag.Parse()
 
 	commands := map[string]command{
