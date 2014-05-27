@@ -19,7 +19,7 @@ func main() {
 	}
 
 	flag.Usage = func() {
-		fmt.Printf("%s is a Twitter command-line interface.\n\n", programName)
+		fmt.Printf("%s is a command-line interface to Twitter.\n\n", programName)
 		var maxCommandLen int
 		for name := range commands {
 			if len := len(name); len > maxCommandLen {
@@ -36,13 +36,13 @@ func main() {
 
 	args := flag.Args()
 
-	if len(args) <= 0 {
+	if len(args) <= 0 || args[0] == "help" {
 		flag.Usage()
 		os.Exit(2)
 	}
 	cmd, ok := commands[args[0]]
 	if !ok {
-		printError("%q is not a valid subcommand\n", args[0])
+		printError("unknown subcommand %q\nRun '%s help' for usage.\n", args[0], programName)
 		os.Exit(1)
 	}
 	if err := cmd.fn(args[1:]); err != nil {
