@@ -8,6 +8,7 @@ import (
 )
 
 var programName string
+var programVersion = "3.0.0"
 
 func init() {
 	programName = filepath.Base(os.Args[0])
@@ -15,7 +16,8 @@ func init() {
 
 func main() {
 	commands := map[string]command{
-		"ruler": makeRulerCommand(),
+		"ruler":   makeRulerCommand(),
+		"version": makeVersionCommand(),
 	}
 
 	flag.Usage = func() {
@@ -67,7 +69,7 @@ func makeRulerCommand() command {
 	}
 	return command{
 		fs:   fs,
-		desc: "prints a 140-character ruler",
+		desc: "print a 140-character ruler",
 		fn:   fn,
 	}
 }
@@ -85,6 +87,18 @@ func ruler(spacesToIndent int) string {
 		}
 	}
 	return ruler
+}
+
+func makeVersionCommand() command {
+	fn := func(args []string) error {
+		_, err := fmt.Println(programVersion)
+		return err
+	}
+	desc := fmt.Sprintf("print %s version", programName)
+	return command{
+		desc: desc,
+		fn:   fn,
+	}
 }
 
 func printError(format string, args ...interface{}) {
