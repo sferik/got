@@ -1,10 +1,15 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+
+	"github.com/kurrik/oauth1a"
 )
 
 var programName string
@@ -16,8 +21,9 @@ func init() {
 
 func main() {
 	commands := map[string]command{
-		"ruler":   makeRulerCommand(),
-		"version": makeVersionCommand(),
+		"authorize": makeAuthorizeCommand(),
+		"ruler":     makeRulerCommand(),
+		"version":   makeVersionCommand(),
 	}
 
 	flag.Usage = func() {
@@ -59,6 +65,45 @@ type command struct {
 	fn   func([]string) error
 }
 
+func makeAuthorizeCommand() command {
+	fn := func(args []string) error {
+		message := fmt.Sprintf("Press [Enter] to authorize %s with Twitter.", programName)
+		_, err := fmt.Println(message)
+		reader := bufio.NewReader(os.Stdin)
+		reader.ReadString('\n')
+		service := &oauth1a.Service{
+			RequestURL:   "https://api.twitter.com/oauth/request_token",
+			AuthorizeURL: "https://api.twitter.com/oauth/authorize",
+			AccessURL:    "https://api.twitter.com/oauth/access_token",
+			ClientConfig: &oauth1a.ClientConfig{
+				ConsumerKey:    "r1iPw4qOe4QJ9X7wgaXkGXRYH",                          // os.Getenv("TWITTER_CONSUMER_KEY"),
+				ConsumerSecret: "fuCqog2zxrkSoAWgv7wisBeLCL2p0aGH3OeBTD4cw0VVCU8OIm", // os.Getenv("TWITTER_CONSUMER_SECRET"),
+			},
+			Signer: new(oauth1a.HmacSha1Signer),
+		}
+		httpClient := new(http.Client)
+		userConfig := &oauth1a.UserConfig{}
+		if err := userConfig.GetRequestToken(service, httpClient); err != nil {
+			return err
+		}
+		if url, err := userConfig.GetAuthorizeURL(service); err != nil {
+			return err
+		} else {
+			if _, err := exec.Command("open", url).Output(); err != nil {
+				return err
+			}
+		}
+		fmt.Print("Enter the supplied PIN: ")
+		reader = bufio.NewReader(os.Stdin)
+		reader.ReadString('\n')
+		return err
+	}
+	return command{
+		desc: fmt.Sprintf("authorize your Twitter account with %s", programName),
+		fn:   fn,
+	}
+}
+
 func makeRulerCommand() command {
 	fs := flag.NewFlagSet("ruler", flag.ExitOnError)
 	spacesToIndent := fs.Int("indent", 0, "the number of spaces to print before the ruler")
@@ -94,9 +139,8 @@ func makeVersionCommand() command {
 		_, err := fmt.Println(programVersion)
 		return err
 	}
-	desc := fmt.Sprintf("print %s version", programName)
 	return command{
-		desc: desc,
+		desc: fmt.Sprintf("print %s version", programName),
 		fn:   fn,
 	}
 }
